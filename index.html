@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Ref Videos">
+<meta name="theme-color" content="#f3f2f0">
+<title>Tania Reference Videos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&amp;family=Figtree:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style id="css">
+/* Layout idea: a studio class board. Big color-block tiles per category on the home view; a category opens a filterable list. */
+:root{
+  --paper:#f3f2f0;
+  --surface:#ffffff;
+  --ink:#1c1b22;
+  --muted:#6b6873;
+  --line:#dddbe0;
+  --accent:#3b2fd6;
+  --tile-ink:#1c1b22;
+  --font-display:"Archivo","Arial Narrow",Arial,sans-serif;
+  --font-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --r:14px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#141318;--surface:#1e1d24;--ink:#f1eff5;--muted:#a3a0ad;--line:#33313b;--accent:#a49bff;color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#141318;--surface:#1e1d24;--ink:#f1eff5;--muted:#a3a0ad;--line:#33313b;--accent:#a49bff;color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:var(--paper);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.45}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+a{color:inherit}
+.wrap{max-width:1080px;margin:0 auto;padding:20px max(16px,3vw) 60px;display:flex;flex-direction:column;gap:20px}
+
+/* Header */
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 20px;justify-content:space-between}
+.brand h1{font-family:var(--font-display);font-stretch:72%;font-weight:850;font-size:clamp(30px,5vw,44px);line-height:.95;margin:0;letter-spacing:-.01em;text-transform:uppercase;text-wrap:balance}
+.brand p{margin:6px 0 0;color:var(--muted);font-size:14px;font-variant-numeric:tabular-nums}
+.top-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.search{min-width:200px;flex:1;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.btn{border:1px solid var(--line);background:var(--surface);padding:9px 14px;border-radius:10px;cursor:pointer;font-weight:600;white-space:nowrap}
+.btn:hover{border-color:var(--ink)}
+.btn.primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.btn.primary:hover{opacity:.9}
+.btn.ghost{background:transparent}
+.btn.danger{color:#c4352b;border-color:#e9b3ad;background:transparent}
+.note{font-size:13px;color:var(--muted);padding:8px 12px;border:1px dashed var(--line);border-radius:10px}
+.note b{color:var(--ink)}
+
+/* Tiles */
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.tile{position:relative;border:0;border-radius:var(--r);padding:16px;min-height:150px;text-align:left;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;color:var(--tile-ink);transition:transform .15s ease}
+.tile:hover{transform:translateY(-2px)}
+.tile .name{font-family:var(--font-display);font-stretch:68%;font-weight:850;font-size:34px;line-height:.92;text-transform:uppercase;letter-spacing:-.005em;overflow-wrap:anywhere}
+.tile .meta{display:flex;justify-content:space-between;align-items:flex-end;gap:8px;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.tile .count{font-family:var(--font-display);font-stretch:80%;font-weight:800;font-size:40px;line-height:1}
+.tile .sub{opacity:.75}
+.tile .edit{position:absolute;top:10px;right:10px;border:0;background:rgba(255,255,255,.55);border-radius:8px;padding:4px 8px;font-size:12px;font-weight:700;cursor:pointer;color:var(--tile-ink)}
+.tile .edit:hover{background:rgba(255,255,255,.85)}
+.tile.outline{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.tile.add{background:transparent;border:2px dashed var(--line);color:var(--muted);align-items:center;justify-content:center;text-align:center;font-weight:700}
+.tile.add:hover{border-color:var(--ink);color:var(--ink)}
+.section-label{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0}
+
+/* Category view */
+.cat-head{border-radius:var(--r);padding:18px 18px 16px;color:var(--tile-ink);display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between}
+.cat-head .back{border:0;background:rgba(255,255,255,.55);border-radius:8px;padding:5px 10px;font-weight:700;cursor:pointer;color:var(--tile-ink);margin-bottom:10px}
+.cat-head h2{font-family:var(--font-display);font-stretch:68%;font-weight:850;font-size:clamp(40px,8vw,64px);line-height:.9;margin:0;text-transform:uppercase}
+.cat-head .stats{font-weight:600;font-size:14px;font-variant-numeric:tabular-nums}
+.cat-head .actions{display:flex;gap:8px;flex-wrap:wrap}
+.cat-head .actions .btn{background:rgba(255,255,255,.7);border-color:transparent;color:var(--tile-ink)}
+.cat-head .actions .btn:hover{background:#fff}
+
+.filters{display:flex;flex-direction:column;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.frow{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.frow .lbl{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);width:92px;flex-shrink:0}
+.chip{border:1px solid var(--line);background:transparent;border-radius:999px;padding:5px 11px;font-size:13px;font-weight:600;cursor:pointer}
+.chip:hover{border-color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.frow select{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:5px 8px;font-size:13px}
+.result-line{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:14px}
+
+/* Video rows */
+.list{display:flex;flex-direction:column;gap:8px}
+.vid{display:grid;grid-template-columns:6px 1fr auto;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px 12px 0;align-items:start}
+.vid.picked{outline:3px solid var(--accent);outline-offset:1px}
+.vid .stripe{border-radius:0 4px 4px 0;align-self:stretch}
+.vid.has-thumb{grid-template-columns:6px 132px 1fr auto}
+.thumb{display:block;width:132px;aspect-ratio:16/10;border-radius:9px;overflow:hidden;background:var(--paper)}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.pic-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pic-prev{width:160px;aspect-ratio:16/10;border-radius:9px;overflow:hidden;background:var(--paper);border:1px dashed var(--line);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;text-align:center}
+.pic-prev img{width:100%;height:100%;object-fit:cover;display:block}
+.pic-btns{display:flex;flex-direction:column;gap:6px}
+.player{max-width:900px;padding:12px;gap:10px}
+.player .frame{position:relative;width:100%;aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:#000}
+.player .frame.tall{aspect-ratio:9/16;max-height:78vh;width:auto;margin:0 auto}
+.player iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.player .ph{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.player .ph b{font-size:16px;overflow-wrap:anywhere}
+.thumb{position:relative;border:0;padding:0;cursor:pointer}
+.thumb .play{position:absolute;inset:auto auto 6px 6px;background:rgba(0,0,0,.65);color:#fff;font-size:11px;font-weight:700;border-radius:999px;padding:2px 8px}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.vid .body{min-width:0;display:flex;flex-direction:column;gap:5px}
+.vid .title{font-weight:700;font-size:16px;text-decoration:none;overflow-wrap:anywhere}
+.vid .title:hover{text-decoration:underline}
+.vid .line{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:13px;color:var(--muted)}
+.vid .mins{font-family:var(--font-display);font-stretch:80%;font-weight:800;font-size:18px;color:var(--ink);font-variant-numeric:tabular-nums}
+.pill{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:2px 8px;border:1px solid currentColor}
+.pill.low{color:#2e8a57}.pill.medium{color:#b7791f}.pill.high{color:#c4352b}
+.tag{font-size:12px;border-radius:6px;padding:1px 7px;background:var(--paper);color:var(--ink)}
+.cattag{font-size:12px;font-weight:700;border-radius:6px;padding:1px 7px;color:var(--tile-ink);cursor:pointer;border:0}
+.vid .notes{font-size:13px;color:var(--ink);opacity:.85}
+.vid .acts{display:flex;flex-direction:column;gap:6px;align-items:stretch}
+.vid .acts .btn{padding:6px 10px;font-size:13px}
+.star{font-size:16px;line-height:1}
+.star.on{color:#d69e00}
+.example{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;background:var(--accent);color:var(--paper);border-radius:4px;padding:1px 6px}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:var(--r);padding:28px;text-align:center;color:var(--muted);display:flex;flex-direction:column;gap:12px;align-items:center}
+
+/* Modal */
+.backdrop{position:fixed;inset:0;background:rgba(10,10,15,.5);display:flex;align-items:flex-start;justify-content:center;padding:5vh 16px;overflow-y:auto;z-index:20}
+.modal{background:var(--surface);color:var(--ink);border-radius:16px;width:100%;max-width:560px;padding:20px;display:flex;flex-direction:column;gap:14px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal h3{font-family:var(--font-display);font-stretch:75%;font-weight:850;font-size:28px;margin:0;text-transform:uppercase}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label,.field .flabel{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.field input,.field textarea,.field select{border:1px solid var(--line);background:var(--paper);border-radius:9px;padding:9px 11px}
+.field textarea{min-height:64px;resize:vertical}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.swatches{display:flex;flex-wrap:wrap;gap:8px}
+.sw{width:34px;height:34px;border-radius:50%;border:3px solid transparent;cursor:pointer}
+.sw[aria-pressed="true"]{border-color:var(--ink)}
+.modal .foot{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.modal .foot .right{display:flex;gap:8px;margin-left:auto}
+.err{color:#c4352b;font-size:13px;font-weight:600}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:9px 16px;border-radius:999px;font-size:14px;font-weight:600;z-index:30}
+
+@media (max-width:560px){
+  .vid,.vid.has-thumb{grid-template-columns:6px 1fr}
+  .thumb{grid-column:2;width:100%;max-width:320px}
+  .vid .acts{grid-column:2;flex-direction:row;flex-wrap:wrap}
+  .frow .lbl{width:100%}
+  .two{grid-template-columns:1fr}
+  .tiles{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+  .tile .name{font-size:28px}
+}
+@media (prefers-reduced-motion:reduce){.tile{transition:none}.tile:hover{transform:none}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="application/json" id="state">{"v":1,"categories":[{"id":"barre","name":"Barre","color":"#f7c6d4","group":"workout"},{"id":"pilates","name":"Pilates","color":"#c9e4c5","group":"workout"},{"id":"hiit","name":"HIIT","color":"#ffd1b8","group":"workout"},{"id":"strength","name":"Strength","color":"#c7d4fb","group":"workout"},{"id":"yoga","name":"Yoga","color":"#fbe6a9","group":"workout"},{"id":"hair","name":"Hair","color":"#f5d0c5","group":"other"},{"id":"makeup","name":"Makeup","color":"#f3d1f0","group":"other"},{"id":"craft-asha","name":"Crafts","color":"#c6e7ef","group":"other"},{"id":"mahjong","name":"Mahjong","color":"#d3ecd9","group":"other"},{"id":"knitting","name":"Knitting","color":"#f0dccb","group":"other"}],"videos":[]}</script>
+<script id="app">
+(function(){
+"use strict";
+var COLORS=["#f7c6d4","#c9e4c5","#ffd1b8","#c7d4fb","#fbe6a9","#ddd0f5","#c6e7ef","#f5d0c5","#e3eebf","#f0dccb","#d3ecd9","#f3d1f0"];
+var GROUPS=[{k:"workout",l:"Workout Categories"},{k:"other",l:"Other Video Categories"}];
+var EQUIP=["None","Mat","Light weights","Dumbbells","Ankle weights","Ball","Band","Chair / barre","Kettlebell","Sliders"];
+var DUR=[{k:"all",l:"Any"},{k:"0-15",l:"15 min or less",a:0,b:15},{k:"16-30",l:"16–30",a:16,b:30},{k:"31-45",l:"31–45",a:31,b:45},{k:"46+",l:"46+",a:46,b:9999}];
+var INT=[{k:"all",l:"Any"},{k:"low",l:"Low"},{k:"medium",l:"Medium"},{k:"high",l:"High"}];
+
+var state=JSON.parse(document.getElementById("state").textContent);
+function migrate(){state.categories.forEach(function(c){if(c.group!=="other")c.group="workout";});}
+migrate();
+var mode="local"; // "artifact" | "local" | "readonly"
+var artifactApi=null;
+var assetsApi=true;
+function imgSrc(id){return id;}
+function ytId(url){var m=String(url).match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);return m?m[1]:"";}
+function vimeoId(url){var m=String(url).match(/vimeo\.com\/(?:video\/)?(\d{6,})/);return m?m[1]:"";}
+function isShort(url){return /youtube\.com\/shorts\//.test(url);}
+function autoThumb(url){var y=ytId(url);if(y)return "https://i.ytimg.com/vi/"+y+"/hqdefault.jpg";var v=vimeoId(url);if(v)return "https://vumbnail.com/"+v+".jpg";return "";}
+function thumbFor(v){return v.img||autoThumb(v.url);}
+function embedFor(v){var y=ytId(v.url);if(y)return "https://www.youtube-nocookie.com/embed/"+y+"?autoplay=1&rel=0&playsinline=1";var m=vimeoId(v.url);if(m)return "https://player.vimeo.com/video/"+m+"?autoplay=1";return "";}
+var ui={search:"",dur:"all",int:"all",equip:[],fav:false,sort:"recent",picked:null,modal:null,toast:null};
+
+try{var ls=localStorage.getItem("trv-state");}catch(e){ls=null;}
+
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];});}
+function today(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function uid(){return "v"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+function slug(s){return String(s).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"category";}
+function cat(id){for(var i=0;i<state.categories.length;i++)if(state.categories[i].id===id)return state.categories[i];return null;}
+function fmtDate(iso){if(!iso)return "";var p=iso.split("-");var d=new Date(+p[0],+p[1]-1,+p[2]);return d.toLocaleDateString(undefined,{month:"short",day:"numeric"});}
+function lastDone(v){return v.done&&v.done.length?v.done[v.done.length-1]:"";}
+function source(url){try{var h=new URL(url).hostname.replace(/^www\./,"");}catch(e){return "";}
+  if(/youtube|youtu\.be/.test(h))return "YouTube";if(/vimeo/.test(h))return "Vimeo";if(/instagram/.test(h))return "Instagram";if(/tiktok/.test(h))return "TikTok";if(/sweat/.test(h))return "Sweat";if(/peloton/.test(h))return "Peloton";if(/apple\.com/.test(h))return "Apple Fitness+";return h;}
+
+/* ---------- saving ---------- */
+var saveTimer=null;
+function save(msg){
+  if(mode==="readonly"){toast("This copy is view-only");return;}
+  if(msg)toast(msg);
+  render();
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(persist,150);
+}
+var KEY="trv-state";
+function persist(){
+  try{localStorage.setItem(KEY,JSON.stringify(state));}
+  catch(e){toast("This device is out of storage space. Remove a few pictures, then try again.");}
+}
+
+/* ---------- filtering ---------- */
+function videosFor(cid){
+  return state.videos.filter(function(v){
+    if(cid==="all")return true;
+    if(cid==="favorites")return v.fav;
+    return v.cats.indexOf(cid)>-1;
+  });
+}
+function applyFilters(list){
+  var q=ui.search.trim().toLowerCase();
+  var d=DUR.filter(function(x){return x.k===ui.dur;})[0];
+  var out=list.filter(function(v){
+    if(q&&(v.title+" "+v.instructor+" "+v.notes+" "+v.equip.join(" ")).toLowerCase().indexOf(q)<0)return false;
+    if(d&&d.k!=="all"&&!(v.mins>=d.a&&v.mins<=d.b))return false;
+    if(ui.int!=="all"&&v.intensity!==ui.int)return false;
+    if(ui.fav&&!v.fav)return false;
+    for(var i=0;i<ui.equip.length;i++)if(v.equip.indexOf(ui.equip[i])<0)return false;
+    return true;
+  });
+  var s=ui.sort;
+  out.sort(function(a,b){
+    if(s==="short")return (a.mins||0)-(b.mins||0);
+    if(s==="long")return (b.mins||0)-(a.mins||0);
+    if(s==="stale"){var la=lastDone(a)||"0",lb=lastDone(b)||"0";return la<lb?-1:la>lb?1:0;}
+    if(s==="most")return (b.done.length)-(a.done.length);
+    return a.added<b.added?1:a.added>b.added?-1:0;
+  });
+  return out;
+}
+
+/* ---------- views ---------- */
+function route(){var h=(location.hash||"").slice(1);return h||"";}
+function go(id){ui.dur="all";ui.int="all";ui.equip=[];ui.fav=false;ui.picked=null;location.hash=id?id:"";if(!id){history.replaceState(null,"",location.pathname+location.search);render();}}
+
+function noteHtml(){
+  var hasEx=state.videos.some(function(v){return v.example;});
+  var parts=[];
+  if(!state.videos.length)parts.push("<div class=\"note\"><b>Your library is saved on this device.</b> To move it to another phone or computer, tap <b>Back up</b> here and <b>Restore</b> there.</div>");
+  if(mode==="readonly")parts.push("<div class=\"note\"><b>View-only.</b> Only the owner can add or change videos here.</div>");
+  if(hasEx&&mode!=="readonly")parts.push("<div class=\"note\">The videos marked <span class=\"example\">Example</span> are YouTube searches to show how it works. <button class=\"btn ghost\" data-act=\"clear-examples\" style=\"padding:3px 9px;font-size:13px;margin-left:6px\">Remove examples</button></div>");
+  return parts.join("");
+}
+
+function header(){
+  var total=state.videos.length;
+  var mins=state.videos.reduce(function(s,v){return s+(v.mins||0);},0);
+  var sessions=state.videos.reduce(function(s,v){return s+v.done.length;},0);
+  return "<header class=\"top\"><div class=\"brand\"><h1>Tania Reference Videos</h1><p>"+total+" saved videos · "+state.categories.length+" categories · "+sessions+" times watched or done</p></div>"+
+    "<div class=\"top-actions\"><input class=\"search\" id=\"q\" type=\"search\" placeholder=\"Search titles, instructors, notes\" value=\""+esc(ui.search)+"\" aria-label=\"Search videos\">"+
+    "<button class=\"btn\" data-act=\"backup\">Back up</button><label class=\"btn\" for=\"restore\">Restore</label><input class=\"vh\" id=\"restore\" type=\"file\" accept=\"application/json,.json\">"+
+    "<button class=\"btn primary\" data-act=\"add-video\">+ Add video</button></div></header>";
+}
+
+function homeView(){
+  var h=header()+noteHtml();
+  if(ui.search.trim()){return h+resultsBlock(applyFilters(state.videos),"all");}
+  GROUPS.forEach(function(G){
+  h+="<p class=\"section-label\">"+G.l+"</p><div class=\"tiles\">";
+  state.categories.filter(function(c){return c.group===G.k;}).forEach(function(c){
+    var vs=videosFor(c.id);var mins=vs.reduce(function(s,v){return s+(v.mins||0);},0);
+    var last=vs.map(lastDone).filter(Boolean).sort().pop();
+    h+="<div class=\"tile\" role=\"button\" tabindex=\"0\" data-go=\""+esc(c.id)+"\" style=\"background:"+esc(c.color)+"\">"+
+      (mode==="readonly"?"":"<button class=\"edit\" data-act=\"edit-cat\" data-id=\""+esc(c.id)+"\" aria-label=\"Edit "+esc(c.name)+"\">Edit</button>")+
+      "<div class=\"name\">"+esc(c.name)+"</div>"+
+      "<div class=\"meta\"><div><div class=\"count\">"+vs.length+"</div><div class=\"sub\">"+(vs.length===1?"video":"videos")+(mins?" · "+mins+" min":"")+"</div></div><div class=\"sub\" style=\"text-align:right\">"+(last?"Last done<br>"+fmtDate(last):"Not done yet")+"</div></div></div>";
+  });
+  if(mode!=="readonly")h+="<button class=\"tile add\" data-act=\"add-cat\" data-group=\""+G.k+"\">+ New tile</button>";
+  h+="</div>";
+  });
+  h+="<p class=\"section-label\">Shortcuts</p><div class=\"tiles\">";
+  var favs=videosFor("favorites").length;
+  h+="<div class=\"tile outline\" role=\"button\" tabindex=\"0\" data-go=\"all\" style=\"min-height:110px\"><div class=\"name\" style=\"font-size:26px\">All videos</div><div class=\"meta\"><div class=\"count\" style=\"font-size:30px\">"+state.videos.length+"</div></div></div>";
+  h+="<div class=\"tile outline\" role=\"button\" tabindex=\"0\" data-go=\"favorites\" style=\"min-height:110px\"><div class=\"name\" style=\"font-size:26px\">★ Favorites</div><div class=\"meta\"><div class=\"count\" style=\"font-size:30px\">"+favs+"</div></div></div>";
+  h+="</div>";
+  return h;
+}
+
+function catView(cid){
+  var c=cat(cid);
+  var name=c?c.name:(cid==="favorites"?"Favorites":"All videos");
+  var color=c?c.color:"var(--surface)";
+  var all=videosFor(cid);
+  var shown=applyFilters(all);
+  var mins=all.reduce(function(s,v){return s+(v.mins||0);},0);
+  var h=header()+noteHtml();
+  h+="<section class=\"cat-head\" style=\"background:"+esc(color)+";"+(c?"":"color:var(--ink);border:1px solid var(--line)")+"\"><div><button class=\"back\" data-act=\"home\""+(c?"":" style=\"color:var(--ink);background:var(--paper)\"")+">← All categories</button><h2>"+esc(name)+"</h2><div class=\"stats\">"+all.length+" "+(all.length===1?"video":"videos")+" · "+mins+" min total</div></div>"+
+    "<div class=\"actions\">"+(shown.length?"<button class=\"btn\" data-act=\"pick\">Pick one for me</button>":"")+
+    (mode!=="readonly"&&c?"<button class=\"btn\" data-act=\"add-video\" data-cat=\""+esc(cid)+"\">+ Add "+esc(name)+" video</button><button class=\"btn\" data-act=\"edit-cat\" data-id=\""+esc(cid)+"\">Edit category</button>":"")+"</div></section>";
+  if(!all.length){
+    return h+"<div class=\"empty\"><div>No "+esc(name)+" videos yet.</div>"+(mode!=="readonly"&&c?"<button class=\"btn primary\" data-act=\"add-video\" data-cat=\""+esc(cid)+"\">Save your first one</button>":"")+"</div>";
+  }
+  // filters
+  var eqSet={};all.forEach(function(v){v.equip.forEach(function(e){eqSet[e]=1;});});
+  var eqs=Object.keys(eqSet).sort();
+  h+="<div class=\"filters\">";
+  h+="<div class=\"frow\"><span class=\"lbl\">Length</span>"+DUR.map(function(d){return chip("dur",d.k,d.l,ui.dur===d.k);}).join("")+"</div>";
+  if(all.some(function(v){return v.intensity;}))h+="<div class=\"frow\"><span class=\"lbl\">Intensity</span>"+INT.map(function(d){return chip("int",d.k,d.l,ui.int===d.k);}).join("")+"</div>";
+  if(eqs.length)h+="<div class=\"frow\"><span class=\"lbl\">Equipment</span>"+eqs.map(function(e){return chip("equip",e,e,ui.equip.indexOf(e)>-1);}).join("")+"</div>";
+  h+="<div class=\"frow\"><span class=\"lbl\">Show</span>"+chip("fav","1","★ Favorites only",ui.fav)+
+    "<label for=\"sort\" class=\"lbl\" style=\"width:auto;margin-left:10px\">Sort</label><select id=\"sort\">"+
+    [["recent","Recently added"],["short","Shortest first"],["long","Longest first"],["stale","Not done in a while"],["most","Most done"]].map(function(o){return "<option value=\""+o[0]+"\""+(ui.sort===o[0]?" selected":"")+">"+o[1]+"</option>";}).join("")+"</select></div>";
+  h+="</div>";
+  return h+resultsBlock(shown,cid);
+}
+function chip(group,val,label,on){return "<button class=\"chip\" data-chip=\""+group+"\" data-val=\""+esc(val)+"\" aria-pressed=\""+(on?"true":"false")+"\">"+esc(label)+"</button>";}
+
+function resultsBlock(list,cid){
+  var filtersOn=ui.dur!=="all"||ui.int!=="all"||ui.equip.length||ui.fav||ui.search.trim();
+  var h="<div class=\"result-line\"><span>Showing "+list.length+" "+(list.length===1?"video":"videos")+"</span>"+(filtersOn?"<button class=\"btn ghost\" data-act=\"reset\" style=\"padding:5px 10px;font-size:13px\">Clear filters</button>":"")+"</div>";
+  if(!list.length)return h+"<div class=\"empty\">Nothing matches these filters.</div>";
+  h+="<div class=\"list\">";
+  list.forEach(function(v){
+    var c0=cat(cid)||cat(v.cats[0]);
+    var last=lastDone(v);var src=source(v.url);
+    var didToday=last===today();
+    var th=thumbFor(v),emb=embedFor(v);
+    h+="<article class=\"vid"+(th?" has-thumb":"")+(ui.picked===v.id?" picked":"")+"\" id=\"vid-"+esc(v.id)+"\"><div class=\"stripe\" style=\"background:"+esc(c0?c0.color:"var(--line)")+"\"></div>"+
+      (th?(emb?"<button class=\"thumb\" data-act=\"play\" data-id=\""+esc(v.id)+"\" aria-label=\"Play "+esc(v.title)+"\"><img src=\""+esc(th)+"\" alt=\"\" loading=\"lazy\"><span class=\"play\">▶ Play</span></button>":"<a class=\"thumb\" href=\""+esc(v.url)+"\" target=\"_blank\" rel=\"noopener\" tabindex=\"-1\" aria-hidden=\"true\"><img src=\""+esc(th)+"\" alt=\"\" loading=\"lazy\"></a>"):"")+
+      "<div class=\"body\">"+
+      "<div class=\"line\" style=\"gap:8px\"><a class=\"title\" href=\""+esc(v.url)+"\" target=\"_blank\" rel=\"noopener\">"+esc(v.title)+"</a>"+(v.example?"<span class=\"example\">Example</span>":"")+"</div>"+
+      "<div class=\"line\">"+(v.mins?"<span class=\"mins\">"+v.mins+" min</span>":"")+(v.intensity?"<span class=\"pill "+esc(v.intensity)+"\">"+esc(v.intensity)+"</span>":"")+(src?"<span>"+esc(src)+"</span>":"")+(v.instructor?"<span>with "+esc(v.instructor)+"</span>":"")+"</div>"+
+      (v.equip.length?"<div class=\"line\">"+v.equip.map(function(e){return "<span class=\"tag\">"+esc(e)+"</span>";}).join("")+"</div>":"")+
+      (v.notes?"<div class=\"notes\">"+esc(v.notes)+"</div>":"")+
+      "<div class=\"line\">"+v.cats.map(function(id){var cc=cat(id);return cc?"<button class=\"cattag\" data-go=\""+esc(id)+"\" style=\"background:"+esc(cc.color)+"\">"+esc(cc.name)+"</button>":"";}).join("")+
+      "<span>"+(v.done.length?"Done "+v.done.length+"× · last "+fmtDate(last):"Not done yet")+"</span></div>"+
+      "</div>";
+    if(mode!=="readonly"){
+      h+="<div class=\"acts\">"+(emb?"<button class=\"btn\" data-act=\"play\" data-id=\""+esc(v.id)+"\">▶ Play</button>":"<a class=\"btn\" href=\""+esc(v.url)+"\" target=\"_blank\" rel=\"noopener\" style=\"text-decoration:none;text-align:center\">Open ↗</a>")+"<button class=\"btn\" data-act=\"done\" data-id=\""+esc(v.id)+"\">"+(didToday?"✓ Done today":"Mark done")+"</button>"+
+        "<button class=\"btn\" data-act=\"fav\" data-id=\""+esc(v.id)+"\" aria-label=\""+(v.fav?"Remove from favorites":"Add to favorites")+"\"><span class=\"star"+(v.fav?" on":"")+"\">"+(v.fav?"★":"☆")+"</span></button>"+
+        "<button class=\"btn ghost\" data-act=\"edit-video\" data-id=\""+esc(v.id)+"\">Edit</button></div>";
+    }
+    h+="</article>";
+  });
+  return h+"</div>";
+}
+
+/* ---------- modals ---------- */
+function videoModal(m){
+  var v=m.v;
+  var fit=!v.cats.length||v.cats.some(function(id){var c=cat(id);return c&&c.group==="workout";});
+  var h="<div class=\"backdrop\" data-act=\"close-bg\"><form class=\"modal\" id=\"vform\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"vtitle\"><h3 id=\"vtitle\">"+(m.isNew?"Save a video":"Edit video")+"</h3>"+
+    "<div class=\"field\"><label for=\"f-url\">Video link</label><input id=\"f-url\" type=\"url\" placeholder=\"Paste a YouTube, Instagram, TikTok or other link\" value=\""+esc(v.url)+"\" required></div>"+
+    "<div class=\"field\"><label for=\"f-title\">Name</label><input id=\"f-title\" type=\"text\" placeholder=\"e.g. 20-min barre burn\" value=\""+esc(v.title)+"\" required></div>"+
+    (assetsApi?"<div class=\"field\"><span class=\"flabel\">Picture "+(autoThumb(v.url)&&!v.img?"(found automatically)":"(optional)")+"</span><div class=\"pic-row\"><div class=\"pic-prev\">"+(m.uploading?"Loading…":(thumbFor(v)?"<img src=\""+esc(thumbFor(v))+"\" alt=\"Picture for this video\">":"Screenshot or photo"))+"</div><div class=\"pic-btns\"><label class=\"btn\" for=\"f-pic\">"+(v.img?"Change picture":"Add picture")+"</label><input class=\"vh\" id=\"f-pic\" type=\"file\" accept=\"image/*\">"+(v.img?"<button type=\"button\" class=\"btn ghost\" data-act=\"rm-pic\">Remove picture</button>":"")+"</div></div></div>":"")+
+    "<div class=\"field\"><span class=\"flabel\" id=\"f-cats-l\">Categories (pick one or more)</span><div class=\"chips\" id=\"f-cats\" role=\"group\" aria-labelledby=\"f-cats-l\">"+
+      state.categories.map(function(c){var on=v.cats.indexOf(c.id)>-1;return "<button type=\"button\" class=\"chip\" data-fcat=\""+esc(c.id)+"\" aria-pressed=\""+on+"\" style=\""+(on?"background:"+esc(c.color)+";border-color:"+esc(c.color)+";color:var(--tile-ink)":"")+"\">"+esc(c.name)+"</button>";}).join("")+"</div></div>"+
+    "<div class=\""+(fit?"two":"")+"\"><div class=\"field\"><label for=\"f-mins\">Length (minutes)</label><input id=\"f-mins\" type=\"number\" min=\"1\" max=\"300\" inputmode=\"numeric\" value=\""+(v.mins||"")+"\"></div>"+
+    (fit?"":"<div hidden>")+"<div class=\"field\"><label for=\"f-int\">Intensity</label><select id=\"f-int\"><option value=\"\">Not set</option>"+["low","medium","high"].map(function(k){return "<option value=\""+k+"\""+(v.intensity===k?" selected":"")+">"+k[0].toUpperCase()+k.slice(1)+"</option>";}).join("")+"</select></div>"+(fit?"":"</div>")+"</div>"+
+    "<div class=\"field\""+(fit?"":" hidden")+"><span class=\"flabel\" id=\"f-eq-l\">Equipment</span><div class=\"chips\" id=\"f-eq\" role=\"group\" aria-labelledby=\"f-eq-l\">"+
+      uniq(EQUIP.concat(v.equip)).map(function(e){return "<button type=\"button\" class=\"chip\" data-feq=\""+esc(e)+"\" aria-pressed=\""+(v.equip.indexOf(e)>-1)+"\">"+esc(e)+"</button>";}).join("")+"</div>"+
+      "<input id=\"f-eq-new\" type=\"text\" placeholder=\"Add other equipment and press Enter\"></div>"+
+    "<div class=\"field\"><label for=\"f-ins\">"+(fit?"Instructor":"Creator")+" (optional)</label><input id=\"f-ins\" type=\"text\" value=\""+esc(v.instructor)+"\"></div>"+
+    "<div class=\"field\"><label for=\"f-notes\">Notes (optional)</label><textarea id=\"f-notes\" placeholder=\"e.g. great on low-energy days, skip the jumps\">"+esc(v.notes)+"</textarea></div>"+
+    "<div class=\"err\" id=\"f-err\" role=\"alert\"></div>"+
+    "<div class=\"foot\">"+(m.isNew?"":"<button type=\"button\" class=\"btn danger\" data-act=\"del-video\">Delete video</button>")+"<div class=\"right\"><button type=\"button\" class=\"btn ghost\" data-act=\"close\">Cancel</button><button type=\"submit\" class=\"btn primary\">"+(m.isNew?"Save video":"Save changes")+"</button></div></div>"+
+    "</form></div>";
+  return h;
+}
+function catModal(m){
+  var c=m.c;
+  return "<div class=\"backdrop\" data-act=\"close-bg\"><form class=\"modal\" id=\"cform\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"ctitle\"><h3 id=\"ctitle\">"+(m.isNew?"New tile":"Edit tile")+"</h3>"+
+    "<div class=\"field\"><label for=\"c-name\">Name</label><input id=\"c-name\" type=\"text\" placeholder=\"e.g. Dance cardio or Gardening\" value=\""+esc(c.name)+"\" required></div>"+
+    "<div class=\"field\"><label for=\"c-group\">Section</label><select id=\"c-group\">"+GROUPS.map(function(G){return "<option value=\""+G.k+"\""+(c.group===G.k?" selected":"")+">"+G.l+"</option>";}).join("")+"</select></div>"+
+    "<div class=\"field\"><span class=\"flabel\" id=\"c-col-l\">Tile color</span><div class=\"swatches\" role=\"group\" aria-labelledby=\"c-col-l\">"+
+      COLORS.map(function(col){return "<button type=\"button\" class=\"sw\" data-col=\""+col+"\" aria-label=\"Color "+col+"\" aria-pressed=\""+(c.color===col)+"\" style=\"background:"+col+"\"></button>";}).join("")+"</div></div>"+
+    "<div class=\"err\" id=\"c-err\" role=\"alert\"></div>"+
+    (m.confirmDel?"<div class=\"note\"><b>Delete "+esc(c.name)+"?</b> Its videos stay in your library; they just lose this tag. Videos with no other category will show under All videos.</div>":"")+
+    "<div class=\"foot\">"+(m.isNew?"":(m.confirmDel?"<button type=\"button\" class=\"btn danger\" data-act=\"del-cat-yes\">Yes, delete category</button>":"<button type=\"button\" class=\"btn danger\" data-act=\"del-cat\">Delete category</button>"))+
+    "<div class=\"right\"><button type=\"button\" class=\"btn ghost\" data-act=\"close\">Cancel</button><button type=\"submit\" class=\"btn primary\">"+(m.isNew?"Create":"Save")+"</button></div></div></form></div>";
+}
+function uniq(a){var o=[];a.forEach(function(x){if(o.indexOf(x)<0)o.push(x);});return o;}
+
+function shrink(file){
+  return new Promise(function(res){
+
+    var url=URL.createObjectURL(file);var im=new Image();
+    im.onload=function(){
+      var max=640,w=im.naturalWidth,h=im.naturalHeight,k=Math.min(1,max/Math.max(w,h));
+      var c=document.createElement("canvas");c.width=Math.round(w*k);c.height=Math.round(h*k);
+      c.getContext("2d").drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(url);
+      res(c.toDataURL("image/jpeg",0.8));
+    };
+    im.onerror=function(){URL.revokeObjectURL(url);res("");};
+    im.src=url;
+  });
+}
+function handlePic(file){
+  if(!ui.modal||!assetsApi)return;
+  readVideoForm();ui.modal.uploading=true;render();
+  var target=ui.modal;
+  shrink(file).then(function(d){if(!d)throw new Error("bad");return {id:d};}).then(function(r){
+    if(ui.modal===target)readVideoForm();target.uploading=false;target.v.img=r.id;if(ui.modal===target)render();
+  }).catch(function(){
+    target.uploading=false;if(ui.modal===target){render();var er=document.getElementById("f-err");if(er)er.textContent="That picture couldn't be read. Try a JPG or PNG screenshot.";}
+  });
+}
+
+/* ---------- render ---------- */
+var root=document.getElementById("root");
+function render(){
+  var r=route();
+  var focusId=document.activeElement&&document.activeElement.id;
+  var selStart=null;try{if(focusId==="q")selStart=document.activeElement.selectionStart;}catch(e){}
+  var body=(r&&(r==="all"||r==="favorites"||cat(r)))?catView(r):homeView();
+  var modal="";
+  if(ui.modal&&ui.modal.kind==="video")modal=videoModal(ui.modal);
+  if(ui.modal&&ui.modal.kind==="cat")modal=catModal(ui.modal);
+  if(ui.modal&&ui.modal.kind==="play"){var pv=ui.modal.v;modal="<div class=\"backdrop\" data-act=\"close-bg\"><div class=\"modal player\" role=\"dialog\" aria-modal=\"true\" aria-label=\""+esc(pv.title)+"\"><div class=\"ph\"><b>"+esc(pv.title)+"</b><button class=\"btn\" data-act=\"close\">Close</button></div><div class=\"frame"+(isShort(pv.url)?" tall":"")+"\"><iframe src=\""+esc(embedFor(pv))+"\" allow=\"autoplay; encrypted-media; picture-in-picture; fullscreen\" allowfullscreen title=\""+esc(pv.title)+"\"></iframe></div><div class=\"ph\"><a href=\""+esc(pv.url)+"\" target=\"_blank\" rel=\"noopener\">Open on the original site ↗</a>"+(lastDone(pv)===today()?"<span>✓ Done today</span>":"<button class=\"btn primary\" data-act=\"done\" data-id=\""+esc(pv.id)+"\">Mark done</button>")+"</div></div></div>";}
+  root.innerHTML="<div class=\"wrap\">"+body+"</div>"+modal+(ui.toast?"<div class=\"toast\" role=\"status\">"+esc(ui.toast)+"</div>":"");
+  if(focusId==="q"){var q=document.getElementById("q");if(q){q.focus();try{q.setSelectionRange(selStart,selStart);}catch(e){}}}
+}
+var toastTimer=null;
+function toast(t){ui.toast=t;render();clearTimeout(toastTimer);toastTimer=setTimeout(function(){ui.toast=null;render();},2200);}
+
+/* ---------- events ---------- */
+function readVideoForm(){
+  var v=ui.modal.v;
+  v.url=document.getElementById("f-url").value.trim();
+  v.title=document.getElementById("f-title").value.trim();
+  var m=parseInt(document.getElementById("f-mins").value,10);v.mins=isNaN(m)?0:m;
+  v.intensity=document.getElementById("f-int").value;
+  v.instructor=document.getElementById("f-ins").value.trim();
+  v.notes=document.getElementById("f-notes").value.trim();
+}
+root.addEventListener("click",function(e){
+  var t=e.target;
+  var actEl=t.closest("[data-act]");
+  var goEl=t.closest("[data-go]");
+  var chipEl=t.closest("[data-chip]");
+  var fcat=t.closest("[data-fcat]"),feq=t.closest("[data-feq]"),sw=t.closest("[data-col]");
+  if(fcat){readVideoForm();var v=ui.modal.v,id=fcat.getAttribute("data-fcat"),i=v.cats.indexOf(id);if(i>-1)v.cats.splice(i,1);else v.cats.push(id);render();return;}
+  if(feq){readVideoForm();var v2=ui.modal.v,eq=feq.getAttribute("data-feq"),j=v2.equip.indexOf(eq);if(j>-1)v2.equip.splice(j,1);else v2.equip.push(eq);render();return;}
+  if(sw){ui.modal.c.name=document.getElementById("c-name").value;ui.modal.c.group=document.getElementById("c-group").value;ui.modal.c.color=sw.getAttribute("data-col");render();return;}
+  if(chipEl){
+    var g=chipEl.getAttribute("data-chip"),val=chipEl.getAttribute("data-val");ui.picked=null;
+    if(g==="dur")ui.dur=val;else if(g==="int")ui.int=val;else if(g==="fav")ui.fav=!ui.fav;
+    else if(g==="equip"){var k=ui.equip.indexOf(val);if(k>-1)ui.equip.splice(k,1);else ui.equip.push(val);}
+    render();return;
+  }
+  if(actEl){
+    var act=actEl.getAttribute("data-act");
+    if(act==="close-bg"&&t!==actEl)return; // click inside modal
+    e.stopPropagation();
+    var id2=actEl.getAttribute("data-id");
+    switch(act){
+      case "home":go("");break;
+      case "close":case "close-bg":ui.modal=null;render();break;
+      case "add-video":
+        var pre=actEl.getAttribute("data-cat")||(cat(route())?route():"");
+        ui.modal={kind:"video",isNew:true,v:{id:uid(),title:"",url:"",cats:pre?[pre]:[],mins:0,intensity:"",equip:[],instructor:"",notes:"",fav:false,done:[],added:today()}};
+        render();setTimeout(function(){var u=document.getElementById("f-url");if(u)u.focus();},0);break;
+      case "edit-video":
+        var ov=state.videos.filter(function(x){return x.id===id2;})[0];if(!ov)break;
+        ui.modal={kind:"video",isNew:false,v:JSON.parse(JSON.stringify(ov))};render();break;
+      case "play":
+        var pv=state.videos.filter(function(x){return x.id===id2;})[0];if(!pv)break;ui.modal={kind:"play",v:pv};render();break;
+      case "backup":
+        try{var blob=new Blob([JSON.stringify(state,null,1)],{type:"application/json"});var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="tania-reference-videos-"+today()+".json";document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},1000);toast("Backup file saved");}catch(x){toast("Couldn't make the backup file on this device");}
+        break;
+      case "rm-pic":readVideoForm();ui.modal.v.img="";render();break;
+      case "del-video":
+        var did=ui.modal.v.id;state.videos=state.videos.filter(function(x){return x.id!==did;});ui.modal=null;save("Video deleted");break;
+      case "done":
+        var dv=state.videos.filter(function(x){return x.id===id2;})[0];if(!dv)break;
+        if(lastDone(dv)===today()){dv.done.pop();save("Removed today's session");}
+        else{dv.done.push(today());save("Nice work. Logged for today.");}
+        break;
+      case "fav":
+        var fv=state.videos.filter(function(x){return x.id===id2;})[0];if(!fv)break;fv.fav=!fv.fav;save(fv.fav?"Added to favorites":"Removed from favorites");break;
+      case "pick":
+        var pool=applyFilters(videosFor(route()||"all"));if(!pool.length)break;
+        var cand=pool.length>1?pool.filter(function(x){return x.id!==ui.picked;}):pool;
+        ui.picked=cand[Math.floor(Math.random()*cand.length)].id;render();
+        var el=document.getElementById("vid-"+ui.picked);if(el)el.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"center"});
+        break;
+      case "reset":ui.dur="all";ui.int="all";ui.equip=[];ui.fav=false;ui.search="";ui.picked=null;render();break;
+      case "add-cat":
+        ui.modal={kind:"cat",isNew:true,c:{id:"",name:"",color:COLORS[state.categories.length%COLORS.length],group:actEl.getAttribute("data-group")||"workout"}};render();
+        setTimeout(function(){var n=document.getElementById("c-name");if(n)n.focus();},0);break;
+      case "edit-cat":
+        var oc=cat(id2);if(!oc)break;ui.modal={kind:"cat",isNew:false,c:JSON.parse(JSON.stringify(oc))};render();break;
+      case "del-cat":ui.modal.c.name=document.getElementById("c-name").value;ui.modal.c.group=document.getElementById("c-group").value;ui.modal.confirmDel=true;render();break;
+      case "del-cat-yes":
+        var cid=ui.modal.c.id;state.categories=state.categories.filter(function(x){return x.id!==cid;});
+        state.videos.forEach(function(x){x.cats=x.cats.filter(function(y){return y!==cid;});});
+        ui.modal=null;if(route()===cid){location.hash="";}save("Category deleted");break;
+      case "clear-examples":state.videos=state.videos.filter(function(x){return !x.example;});save("Examples removed");break;
+    }
+    return;
+  }
+  if(goEl){go(goEl.getAttribute("data-go"));}
+});
+root.addEventListener("keydown",function(e){
+  if(e.key==="Escape"&&ui.modal){ui.modal=null;render();return;}
+  var tile=e.target.closest&&e.target.closest(".tile[data-go]");
+  if(tile&&e.target===tile&&(e.key==="Enter"||e.key===" ")){e.preventDefault();go(tile.getAttribute("data-go"));}
+  if(e.target.id==="f-eq-new"&&e.key==="Enter"){
+    e.preventDefault();var val=e.target.value.trim();if(!val)return;readVideoForm();
+    if(ui.modal.v.equip.indexOf(val)<0)ui.modal.v.equip.push(val);render();
+    var n=document.getElementById("f-eq-new");if(n)n.focus();
+  }
+});
+root.addEventListener("input",function(e){
+  if(e.target.id==="f-url"&&ui.modal&&ui.modal.kind==="video"){var before=autoThumb(ui.modal.v.url);var now=autoThumb(e.target.value.trim());if(before!==now){readVideoForm();render();var u=document.getElementById("f-url");if(u){u.focus();var L=u.value.length;try{u.setSelectionRange(L,L);}catch(x){}}}return;}
+  if(e.target.id==="q"){ui.search=e.target.value;ui.picked=null;render();}
+});
+root.addEventListener("change",function(e){
+  if(e.target.id==="f-pic"&&e.target.files&&e.target.files[0]){handlePic(e.target.files[0]);return;}
+  if(e.target.id==="restore"&&e.target.files&&e.target.files[0]){
+    var fr=new FileReader();fr.onload=function(){try{var d=JSON.parse(fr.result);if(!d||!Array.isArray(d.categories)||!Array.isArray(d.videos))throw 0;
+      if(!window.confirm("Replace the library on this device with the backup? ("+d.videos.length+" videos, "+d.categories.length+" tiles)"))return;
+      state=d;migrate();save("Library restored");}catch(x){toast("That file isn't a Tania Reference Videos backup");}};
+    fr.readAsText(e.target.files[0]);e.target.value="";return;}
+  if(e.target.id==="sort"){ui.sort=e.target.value;render();}
+});
+root.addEventListener("submit",function(e){
+  e.preventDefault();
+  if(e.target.id==="vform"){
+    readVideoForm();var v=ui.modal.v,err=document.getElementById("f-err");
+    if(ui.modal.uploading){err.textContent="Wait for the picture to finish loading.";return;}
+    if(!/^https?:\/\//i.test(v.url)){err.textContent="Add a link that starts with http:// or https://";return;}
+    if(!v.title){err.textContent="Give the video a name so you can find it later.";return;}
+    if(!v.cats.length){err.textContent="Pick at least one category.";return;}
+    v.example=false;
+    var idx=-1;state.videos.forEach(function(x,i){if(x.id===v.id)idx=i;});
+    if(idx>-1)state.videos[idx]=v;else state.videos.push(v);
+    var isNew=ui.modal.isNew;ui.modal=null;save(isNew?"Video saved":"Changes saved");
+  }
+  if(e.target.id==="cform"){
+    var c=ui.modal.c,cerr=document.getElementById("c-err");
+    c.name=document.getElementById("c-name").value.trim();
+    c.group=document.getElementById("c-group").value;
+    if(!c.name){cerr.textContent="Name the category.";return;}
+    var dup=state.categories.some(function(x){return x.id!==c.id&&x.name.toLowerCase()===c.name.toLowerCase();});
+    if(dup){cerr.textContent="You already have a category with that name.";return;}
+    if(ui.modal.isNew){
+      var base=slug(c.name),s=base,n=2;while(cat(s)||s==="all"||s==="favorites"){s=base+"-"+n++;}
+      c.id=s;state.categories.push(c);
+    }else{var oc=cat(c.id);oc.name=c.name;oc.color=c.color;oc.group=c.group;}
+    ui.modal=null;save(ui.modal===null?"Category saved":"");
+  }
+});
+window.addEventListener("hashchange",function(){ui.picked=null;render();window.scrollTo(0,0);});
+
+/* ---------- boot ---------- */
+loadLocal();render();
+function loadLocal(){if(ls){try{var s=JSON.parse(ls);if(s&&s.categories&&s.videos){state=s;migrate();}}catch(e){}}}
+})();
+</script>
+</body>
+</html>
